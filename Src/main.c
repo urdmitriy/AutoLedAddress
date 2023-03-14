@@ -46,7 +46,7 @@ TIM_HandleTypeDef htim16;
 DMA_HandleTypeDef hdma_tim16_ch1_up;
 
 /* USER CODE BEGIN PV */
-uint8_t data_buffer[BUFFER_SIZE] = {0}; //RGB
+uint8_t data_buffer[BUFFER_SIZE] = {0,}; //RGB
 volatile int16_t distance_sm = 250;
 /* USER CODE END PV */
 
