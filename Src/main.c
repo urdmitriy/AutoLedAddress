@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "led.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,8 +46,11 @@ TIM_HandleTypeDef htim16;
 DMA_HandleTypeDef hdma_tim16_ch1_up;
 
 /* USER CODE BEGIN PV */
-uint8_t data_buffer[BUFFER_SIZE] = {0,}; //RGB
 volatile int16_t distance_sm = 250;
+uint8_t data_buffer_raw[BUFFER_SIZE] = {0,}; //RGB
+data_led data_buffer;
+int16_t k;
+int16_t b;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -58,8 +61,6 @@ static void MX_TIM16_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
-void write_byte_to_buffer(uint16_t byte_address, uint8_t value);
-void set_led_value(uint16_t led_num, uint8_t red_light, uint8_t green_light, uint8_t blue_light);
 void send_trigger_signal(void); //Sending pulse to sensor
 /* USER CODE END PFP */
 
@@ -101,13 +102,15 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+    k = (0-(COUNT_LED-1)/2 * 10)/(DISTANCE_BACKGROUND_SM - DISTANCE_LIGHT_ON_SM);
+    b = (COUNT_LED-1)/2 - k * DISTANCE_LIGHT_ON_SM / 10;
     for (int i = DELAY_COUNT_TICK; i < BUFFER_SIZE; ++i) { //empty buffer
-        data_buffer[i] = T0H;
+        data_buffer_raw[i] = T0H;
     }
 
     HAL_Delay(1000);
-    HAL_TIM_PWM_Start_DMA(&htim16,TIM_CHANNEL_1,(uint32_t *)data_buffer,
-                          (uint16_t)sizeof(data_buffer));  //1.25us
+    HAL_TIM_PWM_Start_DMA(&htim16,TIM_CHANNEL_1,(uint32_t *)data_buffer_raw,
+                          (uint16_t)sizeof(data_buffer_raw));  //1.25us
     HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_3);
     HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_4);
     HAL_TIM_Base_Start_IT(&htim3); //1 ms
@@ -121,14 +124,17 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-    if (distance_sm>0 && distance_sm<100){
-        static uint8_t led_number_old = 0;
-        uint8_t led_number = 30*distance_sm/100;
-        if (led_number != led_number_old){
-            set_led_value(led_number,0,0,255);
-            set_led_value(led_number_old,0,0,0);
-            led_number_old = led_number;
-        }
+    if (distance_sm >= DISTANCE_BACKGROUND_SM)
+    {
+        set_color_background();
+    }
+    else if (distance_sm < DISTANCE_BACKGROUND_SM && distance_sm > DISTANCE_LIGHT_ON_SM)
+    {
+        run_led();
+    }
+    else
+    {
+        up_light_to_max();
     }
   }
   /* USER CODE END 3 */
@@ -258,7 +264,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 48000-1;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 100-1;
+  htim3.Init.Period = 70-1;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -385,25 +391,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void write_byte_to_buffer(uint16_t byte_address, uint8_t value)
-{
-    for (int i = 0; i < 8; ++i) {
-        if(value & 1<<(7-i)){
-            data_buffer[byte_address+i] = T1H;
-        }
-        else
-        {
-            data_buffer[byte_address+i] = T0H;
-        }
-    }
-}
 
-void set_led_value(uint16_t led_num, uint8_t red_light, uint8_t green_light, uint8_t blue_light)
-{
-    write_byte_to_buffer(DELAY_COUNT_TICK + 24 * (uint16_t)led_num, green_light);
-    write_byte_to_buffer(DELAY_COUNT_TICK + 24 * (uint16_t)led_num + 8, red_light);
-    write_byte_to_buffer(DELAY_COUNT_TICK + 24 * (uint16_t)led_num + 16, blue_light);
-}
 
 void send_trigger_signal(void)
 {
@@ -428,7 +416,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
         {
             uint16_t counter = (uint16_t)TIM1->CNT;
             if (counter > 14500) counter = 14500;
-            distance_sm += (counter / 58 - distance_sm) * 0.1;
+            distance_sm += (counter / 58 - distance_sm) * 0.2;
             TIM1->CR1 |= TIM_CR1_CEN;
         }
     }

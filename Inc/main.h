@@ -49,8 +49,22 @@ extern "C" {
 #define COUNT_LED 30
 #define DELAY_COUNT_TICK 60
 #define BUFFER_SIZE DELAY_COUNT_TICK + COUNT_LED * 24
+#define DISTANCE_BACKGROUND_SM 200
+#define DISTANCE_LIGHT_ON_SM 100
 #define T1H 40
 #define T0H 20
+
+
+typedef struct {
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+} rgb_type;
+
+typedef struct {
+    rgb_type led[COUNT_LED];
+} data_led;
+
 /* USER CODE END EM */
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);

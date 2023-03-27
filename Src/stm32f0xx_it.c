@@ -61,7 +61,7 @@ extern TIM_HandleTypeDef htim3;
 /* USER CODE BEGIN EV */
 extern volatile uint64_t led_position;
 extern volatile uint8_t bit_position;
-extern volatile uint8_t data_buffer[]; //RGB
+extern volatile uint8_t data_buffer_raw[]; //RGB
 /* USER CODE END EV */
 
 /******************************************************************************/
