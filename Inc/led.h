@@ -13,6 +13,5 @@ void set_color_background(void );
 void up_light_to_max(void );
 void two_led_to_one(uint16_t position, uint8_t red, uint8_t green, uint8_t blue);
 void run_led(void );
-void fill_light(void );
 
 #endif //AUTOLEDADDRESS_LED_H

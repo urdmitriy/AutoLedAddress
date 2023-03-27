@@ -96,10 +96,3 @@ void run_led(void ){
     uint16_t curr_position_led = k * distance_sm / 10 + b;
     two_led_to_one(curr_position_led, 50, 0, 0);
 }
-
-void fill_light(void ){
-    for (int i = 0; i < COUNT_LED; ++i) {
-        set_led_value(i, 50, 50, 50);
-        HAL_Delay(10);
-    }
-}
