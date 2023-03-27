@@ -102,6 +102,22 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+
+    FLASH_OBProgramInitTypeDef ob_config;
+    HAL_FLASHEx_OBGetConfig(&ob_config);
+    if (ob_config.RDPLevel == OB_RDP_LEVEL0)
+    {
+        FLASH_OBProgramInitTypeDef set_ob_config;
+        set_ob_config.OptionType = OPTIONBYTE_RDP;
+        set_ob_config.RDPLevel = OB_RDP_LEVEL1;
+        HAL_FLASH_Unlock();
+        HAL_FLASH_OB_Unlock();
+        HAL_FLASHEx_OBProgram(&set_ob_config);
+        HAL_FLASH_OB_Lock();
+        HAL_FLASH_Lock();
+        HAL_FLASH_OB_Launch();
+    }
+
     k = (0-(COUNT_LED-1)/2 * 10)/(DISTANCE_BACKGROUND_SM - DISTANCE_LIGHT_ON_SM);
     b = (COUNT_LED-1)/2 - k * DISTANCE_LIGHT_ON_SM / 10;
     for (int i = DELAY_COUNT_TICK; i < BUFFER_SIZE; ++i) { //empty buffer
