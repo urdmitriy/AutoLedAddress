@@ -140,15 +140,15 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-    if (distance_sm >= DISTANCE_BACKGROUND_SM)
+    if (distance_sm >= DISTANCE_BACKGROUND_SM) //если объект далеко
     {
         set_color_background();
     }
-    else if (distance_sm < DISTANCE_BACKGROUND_SM && distance_sm > DISTANCE_LIGHT_ON_SM)
+    else if (distance_sm < DISTANCE_BACKGROUND_SM && distance_sm > DISTANCE_LIGHT_ON_SM)  //если объект приближается
     {
         run_led();
     }
-    else
+    else //если объект близко
     {
         up_light_to_max();
     }
@@ -426,14 +426,14 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
     {
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
         {
-            TIM1->CR1 |= TIM_CR1_CEN;
+            TIM1->CR1 |= TIM_CR1_CEN; // начало импульса, запускаем таймер
         }
-        else if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
+        else if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) // конец импульса, измеяем длину
         {
             uint16_t counter = (uint16_t)TIM1->CNT;
             if (counter > 14500) counter = 14500;
-            distance_sm += (counter / 58 - distance_sm) * 0.2;
-            TIM1->CR1 |= TIM_CR1_CEN;
+            distance_sm += (counter / 58 - distance_sm) * 0.2; // считаем дистанцию
+            TIM1->CR1 |= TIM_CR1_CEN; //запускаем таймр снова
         }
     }
 }
